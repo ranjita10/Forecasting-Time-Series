@@ -1,0 +1,89 @@
+---
+title: "CrudeOilPriceForecasting"
+output: html_document
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+#install.packages('tseries') 
+#install.packages('forecast')
+#install.packages('ggplot2')
+suppressPackageStartupMessages({
+library(TSA)
+library(forecast)
+library(ggplot2)
+library(dplyr)
+library(fpp)
+})
+```
+
+### Import the crude oil price data and see visulaaize the data and check for Auto correlation and Partial autocorrelation
+
+```{r, echo=FALSE}
+data_input = read.csv("/Users/ranjitarajeevashetty/Library/Mobile Documents/com~apple~CloudDocs/Interview/2019 full time/Fitbit/data.csv", header = TRUE)
+```
+
+```{r, echo=FALSE}
+#visualize the data
+CrudeOilplt <- ts(data_input$Crude_oil, start=c(1987, 5), end=c(2019, 1),frequency=12) 
+
+#Trend observed
+tsdisplay(CrudeOilplt) 
+```
+### Check whether the crudeoil price time series is staionary using ADF test and also check for MA and AR using ACF and PACF plots
+
+```{r}
+ggAcf(CrudeOilplt)
+ggPacf(CrudeOilplt)
+adf.test(CrudeOilplt, alternative = "stationary")
+
+```
+
+### From ADF test we saw that the crude oil price is not stationary. So we are differencing it to make it staionary
+
+```{r}
+ggAcf(diff(CrudeOilplt))
+ggPacf(diff(CrudeOilplt))
+adf.test(diff(CrudeOilplt), alternative = "stationary")
+```
+
+### From ACF , PACF and ADF test we know that Crude Oil price is not stationary and it has both the component of AR and MA. So we will use Auto arima to decide the best AR and MA levels for the Crudeoil Price
+
+```{r}
+auto.arima(CrudeOilplt)
+```
+
+### now fit the ARIMA model
+
+```{r}
+fit<- Arima(CrudeOilplt, order=c(2,1,2), seasonal=c(0,0,2))
+summary(fit)
+```
+
+### Check whether residual is stationary
+
+```{r}
+ggAcf(residuals(fit)) 
+ggPacf(residuals(fit)) 
+adf.test(residuals(fit), alternative = "stationary")
+```
+
+```{r}
+resid<-residuals(fit)
+Box.test(resid, lag=12, type = "Ljung-Box", fitdf=1)
+Box.test(resid, lag=24, type = "Ljung-Box", fitdf=1)
+Box.test(resid, lag=36, type = "Ljung-Box", fitdf=1)
+Box.test(resid, lag=48, type = "Ljung-Box", fitdf=1)
+```
+
+### From above plots and test it is clear thatresiduals are stationary. Now let us forecast for next 6 months
+
+```{r}
+forecast(fit,h=6,level=95)
+fcast<-forecast(fit,h=6,level=95)
+plot(fcast)
+```
+
