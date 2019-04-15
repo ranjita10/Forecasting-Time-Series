@@ -1,6 +1,6 @@
 # Forecasting spot prices of crude oil and petroleum products:
 
-## Conducted time series trend analysis and built a seasonal ARIMA model for forecasting spot prices of crude oil and petroleum products.
+Conducted time series trend analysis and built a seasonal ARIMA model for forecasting spot prices of crude oil and petroleum products.
 
 ## Quick Insights:
 Found insights/observations from the data.
